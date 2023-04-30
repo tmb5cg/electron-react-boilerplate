@@ -26,6 +26,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let browserInstance: puppeteer.Browser | null = null; // Declare the global variable
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -36,8 +37,15 @@ ipcMain.on('ipc-example', async (event, arg) => {
 // Handle user action from the GUI
 ipcMain.on('startScraping', async (event, url) => {
   try {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+    if (!browserInstance) {
+      // If the browser instance doesn't exist, create a new one
+      console.log('Created initial browser instance');
+      browserInstance = await puppeteer.launch();
+    }
+
+    console.log('Using existing browser instance... ');
+
+    const page = await browserInstance.newPage();
 
     // Navigate to a test website
     await page.goto('https://example.com');
@@ -49,8 +57,7 @@ ipcMain.on('startScraping', async (event, url) => {
     // sleep 5 secs
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // Close the Puppeteer browser
-    await browser.close();
+    // No need to close the browser instance here
 
     event.reply('scrapingCompleted', 'Web scraping completed successfully.');
   } catch (error) {
