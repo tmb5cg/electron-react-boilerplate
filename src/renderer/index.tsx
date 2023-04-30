@@ -1,5 +1,10 @@
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import './App.css';
+
+// const puppeteer = require('puppeteer');
+
+// https://medium.com/@alexanderruma/using-node-js-puppeteer-and-electronjs-to-create-a-web-scraping-app-with-a-desktop-interface-668493ced47d
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);

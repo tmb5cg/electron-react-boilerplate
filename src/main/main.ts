@@ -14,6 +14,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+// import puppeteer from 'puppeteer';
+const puppeteer = require('puppeteer');
 
 class AppUpdater {
   constructor() {
@@ -29,6 +31,31 @@ ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
+});
+
+// Handle user action from the GUI
+ipcMain.on('startScraping', async (event, url) => {
+  try {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    // Navigate to a test website
+    await page.goto('https://example.com');
+
+    // Get the content of the first <h1> element
+    const h1Content = await page.$eval('h1', (element) => element.textContent);
+    console.log(h1Content);
+
+    // sleep 5 secs
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    // Close the Puppeteer browser
+    await browser.close();
+
+    event.reply('scrapingCompleted', 'Web scraping completed successfully.');
+  } catch (error) {
+    event.reply('scrapingError', 'An error occurred during web scraping.');
+  }
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -78,6 +105,7 @@ const createWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
+      nodeIntegration: true,
     },
   });
 
